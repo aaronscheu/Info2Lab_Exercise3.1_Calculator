@@ -1,32 +1,29 @@
 /**
  * The main part of the calculator doing the calculations.
- * 
- * @author  David J. Barnes and Michael Kolling 
+ *
+ * @author David J. Barnes and Michael Kolling
  * @version 2008.03.30
  */
-public class CalcEngine
-{
+public class CalcEngine {
     // The calculator's state is maintained in three fields:
     //     buildingDisplayValue, haveLeftOperand, and lastOperator.
-    
+
     // Are we already building a value in the display, or will the
     // next digit be the first of a new one?
-    private boolean buildingDisplayValue;
+    protected boolean buildingDisplayValue;
+    // The current value (to be) shown in the display.
+    protected int displayValue;
     // Has a left operand already been entered (or calculated)?
     private boolean haveLeftOperand;
     // The most recent operator that was entered.
     private char lastOperator;
-
-    // The current value (to be) shown in the display.
-    private int displayValue;
     // The value of an existing left operand.
     private int leftOperand;
 
     /**
      * Create a CalcEngine.
      */
-    public CalcEngine()
-    {
+    public CalcEngine() {
         clear();
     }
 
@@ -34,8 +31,7 @@ public class CalcEngine
      * @return The value that should currently be displayed
      * on the calculator display.
      */
-    public int getDisplayValue()
-    {
+    public int getDisplayValue() {
         return displayValue;
     }
 
@@ -43,15 +39,14 @@ public class CalcEngine
      * A number button was pressed.
      * Either start a new operand, or incorporate this number as
      * the least significant digit of an existing one.
+     *
      * @param number The number pressed on the calculator.
      */
-    public void numberPressed(int number)
-    {
-        if(buildingDisplayValue) {
+    public void numberPressed(int number, String mode) {
+        if (buildingDisplayValue) {
             // Incorporate this digit.
-            displayValue = displayValue*10 + number;
-        }
-        else {
+            displayValue = displayValue * 10 + number;
+        } else {
             // Start building a new number.
             displayValue = number;
             buildingDisplayValue = true;
@@ -59,50 +54,45 @@ public class CalcEngine
     }
 
     /**
-     * The 'plus' button was pressed. 
+     * The 'plus' button was pressed.
      */
-    public void plus()
-    {
+    public void plus() {
         applyOperator('+');
     }
 
     /**
      * The 'minus' button was pressed.
      */
-    public void minus()
-    {
+    public void minus() {
         applyOperator('-');
     }
 
-    public void factor(){
-        applyOperator('*');
-    }
-
-    public void divide(){
-        applyOperator('/');
-    }
-
-    public void exp(){
-        applyOperator('e');
-    }
-    
     /**
      * The '=' button was pressed.
      */
-    public void equals()
-    {
+    public void equals() {
         // This should completes the building of a second operand,
         // so ensure that we really have a left operand, an operator
         // and a right operand.
-        if(haveLeftOperand &&
+        if (haveLeftOperand &&
                 lastOperator != '?' &&
                 buildingDisplayValue) {
             calculateResult();
             lastOperator = '?';
             buildingDisplayValue = false;
-        }
-        else {
-            keySequenceError();
+
+
+        } else {
+            // Exercise 1
+            if (haveLeftOperand &&
+                    lastOperator != '?' &&
+                    !buildingDisplayValue) {
+                // leftOperand = displayValue;
+                buildingDisplayValue = true;
+                equals();
+            } else {
+                keySequenceError();
+            }
         }
     }
 
@@ -110,8 +100,7 @@ public class CalcEngine
      * The 'C' (clear) button was pressed.
      * Reset everything to a starting state.
      */
-    public void clear()
-    {
+    public void clear() {
         lastOperator = '?';
         haveLeftOperand = false;
         buildingDisplayValue = false;
@@ -121,25 +110,22 @@ public class CalcEngine
     /**
      * @return The title of this calculation engine.
      */
-    public String getTitle()
-    {
+    public String getTitle() {
         return "Java Calculator";
     }
 
     /**
      * @return The author of this engine.
      */
-    public String getAuthor()
-    {
+    public String getAuthor() {
         return "David J. Barnes and Michael Kolling";
     }
 
     /**
      * @return The version number of this engine.
      */
-    public String getVersion()
-    {
-       return "Version 1.0";
+    public String getVersion() {
+        return "Version 1.0";
     }
 
     /**
@@ -148,9 +134,8 @@ public class CalcEngine
      * The result becomes both the leftOperand and
      * the new display value.
      */
-    private void calculateResult()
-    {
-        switch(lastOperator) {
+    protected void calculateResult() {
+        switch (lastOperator) {
             case '+':
                 displayValue = leftOperand + displayValue;
                 haveLeftOperand = true;
@@ -161,50 +146,30 @@ public class CalcEngine
                 haveLeftOperand = true;
                 leftOperand = displayValue;
                 break;
-            case '*':
-                displayValue = leftOperand * displayValue;
-                haveLeftOperand = true;
-                leftOperand = displayValue;
-                break;
-            case '/':
-                displayValue = leftOperand / displayValue;
-                haveLeftOperand = true;
-                leftOperand = displayValue;
-                break;
-            case 'e':
-                int tmp = 1;
-                for (int i = 0; i < displayValue; i++)
-                    tmp *= leftOperand;
-                displayValue = tmp;
-                haveLeftOperand = true;
-                leftOperand = tmp;
-                break;
             default:
                 keySequenceError();
                 break;
         }
     }
-    
+
     /**
      * Apply an operator.
+     *
      * @param operator The operator to apply.
      */
-    private void applyOperator(char operator)
-    {
+    protected void applyOperator(char operator) {
         // If we are not in the process of building a new operand
         // then it is an error, unless we have just calculated a
         // result using '='.
-        if(!buildingDisplayValue &&
-                    !(haveLeftOperand && lastOperator == '?')) {
+        if (!buildingDisplayValue && !(haveLeftOperand && lastOperator == '?')) {
             keySequenceError();
             return;
         }
 
-        if(lastOperator != '?') {
+        if (lastOperator != '?') {
             // First apply the previous operator.
             calculateResult();
-        }
-        else {
+        } else {
             // The displayValue now becomes the left operand of this
             // new operator.
             haveLeftOperand = true;
@@ -217,8 +182,7 @@ public class CalcEngine
     /**
      * Report an error in the sequence of keys that was pressed.
      */
-    private void keySequenceError()
-    {
+    protected void keySequenceError() {
         System.out.println("A key sequence error has occurred.");
         // Reset everything.
         clear();
